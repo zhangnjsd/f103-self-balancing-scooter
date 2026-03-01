@@ -32,14 +32,13 @@
 #include "stm32f1xx_hal_tim.h"
 #include "task.h"
 
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "cmsis_os.h"
 #include <math.h>
-#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/_intsup.h>
@@ -97,10 +96,12 @@ typedef struct {
 #define ANGLE_DT_S ((float)ANGLE_PERIOD_MS / 1000.0f)
 #define SPEED_DT_S ((float)SPEED_PERIOD_MS / 1000.0f)
 #define SAMPLE_ALPHA 0.98
-#define MPU6050_GYRO_LSB_PER_DPS 131.0f               // MPU6050 sensitivity for gyroscope in LSB per degree per second
-#define DEG2RAD 0.01745329251f                        // Conversion factor from degrees to radians
-#define RAD2DEG 57.2957795f                           // Conversion factor from radians to degrees  
-#define QUAT_CORR_KP 0.8f                             // Proportional gain for quaternion correction in sensor fusion           
+#define MPU6050_GYRO_LSB_PER_DPS                                               \
+  131.0f // MPU6050 sensitivity for gyroscope in LSB per degree per second
+#define DEG2RAD 0.01745329251f // Conversion factor from degrees to radians
+#define RAD2DEG 57.2957795f    // Conversion factor from radians to degrees
+#define QUAT_CORR_KP                                                           \
+  0.8f // Proportional gain for quaternion correction in sensor fusion
 
 // ? PID constants START
 // * ANGALE PID
@@ -116,16 +117,19 @@ typedef struct {
 #define VPID_KI (VPID_KP / 200.0f)
 #define VPID_KD 0.0f
 
-#define MECHANICAL_MEDIAN 0.0f                        // Mechanical median point for angle PID setpoint
-#define VELO_TARGET 0.0f                              // Target velocity for velocity PID             
-#define APID_I_LIMIT 3000.0f                          // Integral limit for angle PID
-#define WPID_I_LIMIT 3000.0f                          // Integral limit for angular velocity PID
-#define VPID_I_LIMIT 3000.0f                          // Integral limit for velocity PID
-#define APID_OUT_LIMIT 2000.0f                        // Output limit for angle PID
-#define WPID_OUT_LIMIT 2000.0f                        // Output limit for angular velocity PID
-#define VPID_OUT_LIMIT 100.0f                         // Output limit for velocity PID  
-#define MOTOR_MIN_EFFECTIVE_PWM 20U                   // Minimum effective PWM value for the motors
-#define PWM_OUTPUT_SCALE 1.0f                         // Scale factor for converting PID output to PWM value
+// * Limitations and targets, refers to GitHub proj..
+#define MECHANICAL_MEDIAN 0.0f // Mechanical median point for angle PID setpoint
+#define VELO_TARGET 0.0f       // Target velocity for velocity PID
+#define APID_I_LIMIT 3000.0f   // Integral limit for angle PID
+#define WPID_I_LIMIT 3000.0f   // Integral limit for angular velocity PID
+#define VPID_I_LIMIT 3000.0f   // Integral limit for velocity PID
+#define APID_OUT_LIMIT 2000.0f // Output limit for angle PID
+#define WPID_OUT_LIMIT 2000.0f // Output limit for angular velocity PID
+#define VPID_OUT_LIMIT 100.0f  // Output limit for velocity PID
+#define MOTOR_MIN_EFFECTIVE_PWM                                                \
+  20U // Minimum effective PWM value for the motors
+#define PWM_OUTPUT_SCALE                                                       \
+  1.0f // Scale factor for converting PID output to PWM value
 // ? PID constants END
 /* USER CODE END PD */
 
@@ -279,9 +283,9 @@ static void mpu6050_quat_update(const RawAccGyro *raw_sample, float dt) {
 
   float half_dt = 0.5f * dt;
   float nq0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * half_dt;
-  float nq1 = q1 + ( q0 * gx + q2 * gz - q3 * gy) * half_dt;
-  float nq2 = q2 + ( q0 * gy - q1 * gz + q3 * gx) * half_dt;
-  float nq3 = q3 + ( q0 * gz + q1 * gy - q2 * gx) * half_dt;
+  float nq1 = q1 + (q0 * gx + q2 * gz - q3 * gy) * half_dt;
+  float nq2 = q2 + (q0 * gy - q1 * gz + q3 * gx) * half_dt;
+  float nq3 = q3 + (q0 * gz + q1 * gy - q2 * gx) * half_dt;
 
   float qnorm = sqrtf(nq0 * nq0 + nq1 * nq1 + nq2 * nq2 + nq3 * nq3);
   if (qnorm > 1e-6f) {
@@ -331,8 +335,8 @@ void updateInclTask() {
   for (;;) {
     // ! Loop...
     mpu6050_read_all(&raw, &temp);
-    /* printf("RAW: AX: %d, AY: %d, AZ: %d, GX: %d, GY: %d, GZ: %d, TEMP: %d\r\n",
-                      raw.ax, raw.ay, raw.az, raw.gx, raw.gy, raw.gz, temp); */
+    /* printf("RAW: AX: %d, AY: %d, AZ: %d, GX: %d, GY: %d, GZ: %d, TEMP:
+       %d\r\n", raw.ax, raw.ay, raw.az, raw.gx, raw.gy, raw.gz, temp); */
     mpu6050_quat_update(&raw, ANGLE_DT_S);
     mpu6050_quat_to_euler(&eula_incl);
     gyro_pitch_dps = (float)raw.gx / MPU6050_GYRO_LSB_PER_DPS;
@@ -378,16 +382,24 @@ void motorControlTask() {
     // Set same spd for 2 channels
     if (pwm_val >= 0) {
       // ! Forward
-      HAL_GPIO_WritePin(MOTOR_L_INPUT_1_GPIO_Port, MOTOR_L_INPUT_1_PIN, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(MOTOR_L_INPUT_2_GPIO_Port, MOTOR_L_INPUT_2_PIN, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(MOTOR_R_INPUT_1_GPIO_Port, MOTOR_R_INPUT_1_PIN, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(MOTOR_R_INPUT_2_GPIO_Port, MOTOR_R_INPUT_2_PIN, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(MOTOR_L_INPUT_1_GPIO_Port, MOTOR_L_INPUT_1_PIN,
+                        GPIO_PIN_SET);
+      HAL_GPIO_WritePin(MOTOR_L_INPUT_2_GPIO_Port, MOTOR_L_INPUT_2_PIN,
+                        GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(MOTOR_R_INPUT_1_GPIO_Port, MOTOR_R_INPUT_1_PIN,
+                        GPIO_PIN_SET);
+      HAL_GPIO_WritePin(MOTOR_R_INPUT_2_GPIO_Port, MOTOR_R_INPUT_2_PIN,
+                        GPIO_PIN_RESET);
     } else {
       // ! Backward
-      HAL_GPIO_WritePin(MOTOR_L_INPUT_1_GPIO_Port, MOTOR_L_INPUT_1_PIN, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(MOTOR_L_INPUT_2_GPIO_Port, MOTOR_L_INPUT_2_PIN, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(MOTOR_R_INPUT_1_GPIO_Port, MOTOR_R_INPUT_1_PIN, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(MOTOR_R_INPUT_2_GPIO_Port, MOTOR_R_INPUT_2_PIN, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(MOTOR_L_INPUT_1_GPIO_Port, MOTOR_L_INPUT_1_PIN,
+                        GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(MOTOR_L_INPUT_2_GPIO_Port, MOTOR_L_INPUT_2_PIN,
+                        GPIO_PIN_SET);
+      HAL_GPIO_WritePin(MOTOR_R_INPUT_1_GPIO_Port, MOTOR_R_INPUT_1_PIN,
+                        GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(MOTOR_R_INPUT_2_GPIO_Port, MOTOR_R_INPUT_2_PIN,
+                        GPIO_PIN_SET);
     }
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm_mag);
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pwm_mag);
@@ -409,11 +421,11 @@ void mainTask(void) {
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   // ? Init MPU6050...
   mpu6050_init();
-    PIDInit(&aPID, APID_KP, APID_KI, APID_KD, MECHANICAL_MEDIAN, APID_I_LIMIT,
-      APID_OUT_LIMIT);
-    PIDInit(&wPID, WPID_KP, WPID_KI, WPID_KD, 0.0f, WPID_I_LIMIT, WPID_OUT_LIMIT);
-    PIDInit(&vPID, VPID_KP, VPID_KI, VPID_KD, VELO_TARGET, VPID_I_LIMIT,
-      VPID_OUT_LIMIT);
+  PIDInit(&aPID, APID_KP, APID_KI, APID_KD, MECHANICAL_MEDIAN, APID_I_LIMIT,
+          APID_OUT_LIMIT);
+  PIDInit(&wPID, WPID_KP, WPID_KI, WPID_KD, 0.0f, WPID_I_LIMIT, WPID_OUT_LIMIT);
+  PIDInit(&vPID, VPID_KP, VPID_KI, VPID_KD, VELO_TARGET, VPID_I_LIMIT,
+          VPID_OUT_LIMIT);
   // ? PWRUP STDBY...
   HAL_GPIO_WritePin(TB6612_STDBY_GPIO_Port, TB6612_STDBY_PIN, GPIO_PIN_SET);
   for (;;) {

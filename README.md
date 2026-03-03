@@ -38,131 +38,117 @@
 - 对获得的数据进行处理。`mpu6050_quat_update(const RawAccGyro *raw_sample, float dt)` 函数将原始加速度和陀螺仪数据转换为四元数表示的姿态信息（姿态解算算法）。
   - 加速度归一化：
 
-$$
-\vec{a} = \frac{1}{\|\vec{a}\|}(a_x, a_y, a_z)
-$$
-
-对应了：
-
-```C
-float norm = sqrtf(ax * ax + ay * ay + az * az);
-if (norm > 1e-6f) {
-  ax /= norm;
-  ay /= norm;
-  az /= norm;
-}
-```
+    $$\vec{a} = \frac{1}{\|\vec{a}\|}(a_x, a_y, a_z)$$
+    
+    对应了：
+    
+    ```C
+    float norm = sqrtf(ax * ax + ay * ay + az * az);
+    if (norm > 1e-6f) {
+      ax /= norm;
+      ay /= norm;
+      az /= norm;
+    }
+    ```
 
   - 陀螺仪角速度转换为弧度：
 
-$$
-\vec{\omega} = \left(\frac{g_x}{k} \cdot \text{rad}, \frac{g_y}{k} \cdot \text{rad}, \frac{g_z}{k} \cdot \text{rad}\right)
-$$
-
-对应了：
-
-```C
-float gx = ((float)raw_sample->gx / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
-float gy = ((float)raw_sample->gy / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
-float gz = ((float)raw_sample->gz / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
-```
+    $$\vec{\omega} = \left(\frac{g_x}{k} \cdot \text{rad}, \frac{g_y}{k} \cdot \text{rad}, \frac{g_z}{k} \cdot \text{rad}\right)$$
+    
+    对应了：
+    
+    ```C
+    float gx = ((float)raw_sample->gx / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
+    float gy = ((float)raw_sample->gy / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
+    float gz = ((float)raw_sample->gz / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
+    ```
 
   - 四元数预测重力方向：
 
-$$
-v_x = 2(q_1 q_3 - q_0 q_2), \quad
-v_y = 2(q_0 q_1 + q_2 q_3), \quad
-v_z = q_0^2 - q_1^2 - q_2^2 + q_3^2
-$$
-
-对应了：
-
-```C
-float vx = 2.0f * (q1 * q3 - q0 * q2);
-float vy = 2.0f * (q0 * q1 + q2 * q3);
-float vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3;
-```
+    $$v_x = 2(q_1 q_3 - q_0 q_2), \quad
+    v_y = 2(q_0 q_1 + q_2 q_3), \quad
+    v_z = q_0^2 - q_1^2 - q_2^2 + q_3^2$$
+    
+    对应了：
+    
+    ```C
+    float vx = 2.0f * (q1 * q3 - q0 * q2);
+    float vy = 2.0f * (q0 * q1 + q2 * q3);
+    float vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3;
+    ```
 
   - Error:
 
-$$
-e_x = a_y v_z - a_z v_y, \quad
-e_y = a_z v_x - a_x v_z, \quad
-e_z = a_x v_y - a_y v_x
-$$
-
-对应了：
-
-```C
-float ex = ay * vz - az * vy;
-float ey = az * vx - ax * vz;
-float ez = ax * vy - ay * vx;
-```
+    $$e_x = a_y v_z - a_z v_y, \quad
+    e_y = a_z v_x - a_x v_z, \quad
+    e_z = a_x v_y - a_y v_x$$
+    
+    对应了：
+    
+    ```C
+    float ex = ay * vz - az * vy;
+    float ey = az * vx - ax * vz;
+    float ez = ax * vy - ay * vx;
+    ```
 
   - 陀螺仪修正：
 
-$$
-\omega_x' = \omega_x + K_p e_x, \quad
-\omega_y' = \omega_y + K_p e_y, \quad
-\omega_z' = \omega_z + K_p e_z
-$$
-
-对应了：
-
-```C
-gx += QUAT_CORR_KP * ex;
-gy += QUAT_CORR_KP * ey;
-gz += QUAT_CORR_KP * ez;
-```
+    $$\omega_x' = \omega_x + K_p e_x, \quad
+    \omega_y' = \omega_y + K_p e_y, \quad
+    \omega_z' = \omega_z + K_p e_z$$
+    
+    对应了：
+    
+    ```C
+    gx += QUAT_CORR_KP * ex;
+    gy += QUAT_CORR_KP * ey;
+    gz += QUAT_CORR_KP * ez;
+    ```
 
   - 四元数积分：
 
-$$
-\begin{aligned}
-q_0' &= q_0 + \tfrac{1}{2}(-q_1 \omega_x' - q_2 \omega_y' - q_3 \omega_z') \Delta t \\
-q_1' &= q_1 + \tfrac{1}{2}(q_0 \omega_x' + q_2 \omega_z' - q_3 \omega_y') \Delta t \\
-q_2' &= q_2 + \tfrac{1}{2}(q_0 \omega_y' - q_1 \omega_z' + q_3 \omega_x') \Delta t \\
-q_3' &= q_3 + \tfrac{1}{2}(q_0 \omega_z' + q_1 \omega_y' - q_2 \omega_x') \Delta t
-\end{aligned}
-$$
-
-对应了：
-
-```C
-float half_dt = 0.5f * dt;
-float nq0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * half_dt;
-float nq1 = q1 + (q0 * gx + q2 * gz - q3 * gy) * half_dt;
-float nq2 = q2 + (q0 * gy - q1 * gz + q3 * gx) * half_dt;
-float nq3 = q3 + (q0 * gz + q1 * gy - q2 * gx) * half_dt;
-```
+    $$\begin{aligned}
+    q_0' &= q_0 + \tfrac{1}{2}(-q_1 \omega_x' - q_2 \omega_y' - q_3 \omega_z') \Delta t \\
+    q_1' &= q_1 + \tfrac{1}{2}(q_0 \omega_x' + q_2 \omega_z' - q_3 \omega_y') \Delta t \\
+    q_2' &= q_2 + \tfrac{1}{2}(q_0 \omega_y' - q_1 \omega_z' + q_3 \omega_x') \Delta t \\
+    q_3' &= q_3 + \tfrac{1}{2}(q_0 \omega_z' + q_1 \omega_y' - q_2 \omega_x') \Delta t
+    \end{aligned}$$
+    
+    对应了：
+    
+    ```C
+    float half_dt = 0.5f * dt;
+    float nq0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * half_dt;
+    float nq1 = q1 + (q0 * gx + q2 * gz - q3 * gy) * half_dt;
+    float nq2 = q2 + (q0 * gy - q1 * gz + q3 * gx) * half_dt;
+    float nq3 = q3 + (q0 * gz + q1 * gy - q2 * gx) * half_dt;
+    ```
 
   - 四元数归一化：
 
-$$
-q = \frac{q'}{\|q'\|}
-$$
-
-对应了：
-
-```C
-float qnorm = sqrtf(nq0 * nq0 + nq1 * nq1 + nq2 * nq2 + nq3 * nq3);
-if (qnorm > 1e-6f) {
-  q0 = nq0 / qnorm;
-  q1 = nq1 / qnorm;
-  q2 = nq2 / qnorm;
-  q3 = nq3 / qnorm;
-}
-```
+    $$q = \frac{q'}{\|q'\|}$$
+    
+    对应了：
+    
+    ```C
+    float qnorm = sqrtf(nq0 * nq0 + nq1 * nq1 + nq2 * nq2 + nq3 * nq3);
+    if (qnorm > 1e-6f) {
+      q0 = nq0 / qnorm;
+      q1 = nq1 / qnorm;
+      q2 = nq2 / qnorm;
+      q3 = nq3 / qnorm;
+    }
+    ```
 
 - 四元数转欧拉角：
 
-$$
-\begin{aligned}
-\theta _{\text{pitch}} &= \arcsin(2(q_0 q_2 - q_1 q_3)) \\
-\phi _{\text{roll}} &= \arctan2(2(q_0 q_1 + q_2 q_3), 1 - 2(q_1^2 + q_2^2)) \\
-\psi _{\text{yaw}} &= \arctan2(2(q_0 q_3 + q_1 q_2), 1 - 2(q_2^2 + q_3^2))
-\end{aligned}
-$$
+  $$
+  \begin{aligned}
+  \theta _{\text{pitch}} &= \arcsin(2(q_0 q_2 - q_1 q_3)) \\
+  \phi _{\text{roll}} &= \arctan2(2(q_0 q_1 + q_2 q_3), 1 - 2(q_1^2 + q_2^2)) \\
+  \psi _{\text{yaw}} &= \arctan2(2(q_0 q_3 + q_1 q_2), 1 - 2(q_2^2 + q_3^2))
+  \end{aligned}
+  $$
 
 - 三环 PID 串级控制系统：
   

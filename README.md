@@ -107,12 +107,7 @@
 
   - 四元数积分：
 
-    $$\begin{aligned}
-    q_0' &= q_0 + \tfrac{1}{2}(-q_1 \omega_x' - q_2 \omega_y' - q_3 \omega_z') \Delta t \\
-    q_1' &= q_1 + \tfrac{1}{2}(q_0 \omega_x' + q_2 \omega_z' - q_3 \omega_y') \Delta t \\
-    q_2' &= q_2 + \tfrac{1}{2}(q_0 \omega_y' - q_1 \omega_z' + q_3 \omega_x') \Delta t \\
-    q_3' &= q_3 + \tfrac{1}{2}(q_0 \omega_z' + q_1 \omega_y' - q_2 \omega_x') \Delta t
-    \end{aligned}$$
+    $$\begin{aligned}q_0' &= q_0 + \tfrac{1}{2}(-q_1 \omega_x' - q_2 \omega_y' - q_3 \omega_z') \Delta t \\q_1' &= q_1 + \tfrac{1}{2}(q_0 \omega_x' + q_2 \omega_z' - q_3 \omega_y') \Delta t \\q_2' &= q_2 + \tfrac{1}{2}(q_0 \omega_y' - q_1 \omega_z' + q_3 \omega_x') \Delta t \\q_3' &= q_3 + \tfrac{1}{2}(q_0 \omega_z' + q_1 \omega_y' - q_2 \omega_x') \Delta t\end{aligned}$$
     
     对应了：
     

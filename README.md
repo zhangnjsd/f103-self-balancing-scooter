@@ -213,6 +213,8 @@ static float pid_step(PID *pp, float measured, float dt) {
 
 为了保证控制的实时性和稳定性，整个系统基于 FreeRTOS 划分为三个主要任务（Task）进行调度：
 
+> To avoid blocking delays and ensure the timely execution of control loops, the system is structured into three main FreeRTOS tasks. **(Note: Since the STM32F103C6T6 has limited timer resources, `SysTick` is dedicated to FreeRTOS. Therefore, hardware initialization must be handled within `mainTask()`, and blocking functions like `HAL_Delay()` cannot be used.)**
+
 - **姿态更新任务（`updateInclTask`）**：
   - 运行周期为 `ANGLE_PERIOD_MS` (5ms)。
   - 负责定期读取 MPU6050 传感器的加速度、角速度和温度原始数据。

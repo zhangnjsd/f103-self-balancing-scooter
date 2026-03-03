@@ -156,23 +156,21 @@
 
   PID 的计算公式：
 
-$$
-u(t) = K_p e(t) + K_i \int_0^t e(\tau) d\tau + K_d \frac{de(t)}{dt}
-$$
+  $$u(t) = K_p e(t) + K_i \int_0^t e(\tau) d\tau + K_d \frac{de(t)}{dt}$$
 
   对应代码实现中的离散化 PID 步进函数：
 
-```C
-static float pid_step(PID *pp, float measured, float dt) {
-  float err = pp->SetPoint - measured;
-  pp->SumError += err * dt;
-  pp->SumError = clampf(pp->SumError, -pp->ILimit, pp->ILimit);
-  float d = (err - pp->LastError) / dt;
-  pp->LastError = err;
-  float out = pp->Kp * err + pp->Ki * pp->SumError + pp->Kd * d;
-  return clampf(out, -pp->OutLimit, pp->OutLimit);
-}
-```
+  ```C
+  static float pid_step(PID *pp, float measured, float dt) {
+    float err = pp->SetPoint - measured;
+    pp->SumError += err * dt;
+    pp->SumError = clampf(pp->SumError, -pp->ILimit, pp->ILimit);
+    float d = (err - pp->LastError) / dt;
+    pp->LastError = err;
+    float out = pp->Kp * err + pp->Ki * pp->SumError + pp->Kd * d;
+    return clampf(out, -pp->OutLimit, pp->OutLimit);
+  }
+  ```
 
   - **速度环（最外环）**：通过控制车身产生极小的倾角进而控制车速或保持抵御位移干扰。当受到外力推动或偏离位置时，速度环会修正平衡的目标倾角。
     - **输入**：左右电机编码器读数之和，并经过低通滤波平滑处理的值 `encoder_lpf`。

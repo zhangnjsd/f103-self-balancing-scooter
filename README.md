@@ -42,7 +42,7 @@ $$
 \vec{a} = \frac{1}{\|\vec{a}\|}(a_x, a_y, a_z)
 $$
 
-    对应了：
+对应了：
 
 ```C
 float norm = sqrtf(ax * ax + ay * ay + az * az);
@@ -59,7 +59,7 @@ $$
 \vec{\omega} = \left(\frac{g_x}{k} \cdot \text{rad}, \frac{g_y}{k} \cdot \text{rad}, \frac{g_z}{k} \cdot \text{rad}\right)
 $$
 
-    对应了：
+对应了：
 
 ```C
 float gx = ((float)raw_sample->gx / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
@@ -75,7 +75,7 @@ v_y = 2(q_0 q_1 + q_2 q_3), \quad
 v_z = q_0^2 - q_1^2 - q_2^2 + q_3^2
 $$
 
-    对应了：
+对应了：
 
 ```C
 float vx = 2.0f * (q1 * q3 - q0 * q2);
@@ -91,7 +91,7 @@ e_y = a_z v_x - a_x v_z, \quad
 e_z = a_x v_y - a_y v_x
 $$
 
-    对应了：
+对应了：
 
 ```C
 float ex = ay * vz - az * vy;
@@ -107,7 +107,7 @@ $$
 \omega_z' = \omega_z + K_p e_z
 $$
 
-    对应了：
+对应了：
 
 ```C
 gx += QUAT_CORR_KP * ex;
@@ -126,7 +126,7 @@ q_3' &= q_3 + \tfrac{1}{2}(q_0 \omega_z' + q_1 \omega_y' - q_2 \omega_x') \Delta
 \end{aligned}
 $$
 
-    对应了：
+对应了：
 
 ```C
 float half_dt = 0.5f * dt;
@@ -142,7 +142,7 @@ $$
 q = \frac{q'}{\|q'\|}
 $$
 
-    对应了：
+对应了：
 
 ```C
 float qnorm = sqrtf(nq0 * nq0 + nq1 * nq1 + nq2 * nq2 + nq3 * nq3);

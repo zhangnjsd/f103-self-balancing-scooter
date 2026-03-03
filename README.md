@@ -38,9 +38,9 @@
 - 对获得的数据进行处理。`mpu6050_quat_update(const RawAccGyro *raw_sample, float dt)` 函数将原始加速度和陀螺仪数据转换为四元数表示的姿态信息（姿态解算算法）。
   - 加速度归一化：
 
-    $$
-    \vec{a} = \frac{1}{\|\vec{a}\|}(a_x, a_y, a_z)
-    $$
+$$
+\vec{a} = \frac{1}{\|\vec{a}\|}(a_x, a_y, a_z)
+$$
 
     对应了：
 
@@ -55,9 +55,9 @@
 
   - 陀螺仪角速度转换为弧度：
 
-    $$
-    \vec{\omega} = \left(\frac{g_x}{k} \cdot \text{rad}, \frac{g_y}{k} \cdot \text{rad}, \frac{g_z}{k} \cdot \text{rad}\right)
-    $$
+$$
+\vec{\omega} = \left(\frac{g_x}{k} \cdot \text{rad}, \frac{g_y}{k} \cdot \text{rad}, \frac{g_z}{k} \cdot \text{rad}\right)
+$$
 
     对应了：
 
@@ -69,11 +69,11 @@
 
   - 四元数预测重力方向：
 
-    $$
-    v_x = 2(q_1 q_3 - q_0 q_2), \quad
-    v_y = 2(q_0 q_1 + q_2 q_3), \quad
-    v_z = q_0^2 - q_1^2 - q_2^2 + q_3^2
-    $$
+$$
+v_x = 2(q_1 q_3 - q_0 q_2), \quad
+v_y = 2(q_0 q_1 + q_2 q_3), \quad
+v_z = q_0^2 - q_1^2 - q_2^2 + q_3^2
+$$
 
     对应了：
 
@@ -85,11 +85,11 @@
 
   - Error:
 
-    $$
-    e_x = a_y v_z - a_z v_y, \quad
-    e_y = a_z v_x - a_x v_z, \quad
-    e_z = a_x v_y - a_y v_x
-    $$
+$$
+e_x = a_y v_z - a_z v_y, \quad
+e_y = a_z v_x - a_x v_z, \quad
+e_z = a_x v_y - a_y v_x
+$$
 
     对应了：
 
@@ -101,11 +101,11 @@
 
   - 陀螺仪修正：
 
-    $$
-    \omega_x' = \omega_x + K_p e_x, \quad
-    \omega_y' = \omega_y + K_p e_y, \quad
-    \omega_z' = \omega_z + K_p e_z
-    $$
+$$
+\omega_x' = \omega_x + K_p e_x, \quad
+\omega_y' = \omega_y + K_p e_y, \quad
+\omega_z' = \omega_z + K_p e_z
+$$
 
     对应了：
 
@@ -117,14 +117,14 @@
 
   - 四元数积分：
 
-    $$
-    \begin{aligned}
-    q_0' &= q_0 + \tfrac{1}{2}(-q_1 \omega_x' - q_2 \omega_y' - q_3 \omega_z') \Delta t \\
-    q_1' &= q_1 + \tfrac{1}{2}(q_0 \omega_x' + q_2 \omega_z' - q_3 \omega_y') \Delta t \\
-    q_2' &= q_2 + \tfrac{1}{2}(q_0 \omega_y' - q_1 \omega_z' + q_3 \omega_x') \Delta t \\
-    q_3' &= q_3 + \tfrac{1}{2}(q_0 \omega_z' + q_1 \omega_y' - q_2 \omega_x') \Delta t
-    \end{aligned}
-    $$
+$$
+\begin{aligned}
+q_0' &= q_0 + \tfrac{1}{2}(-q_1 \omega_x' - q_2 \omega_y' - q_3 \omega_z') \Delta t \\
+q_1' &= q_1 + \tfrac{1}{2}(q_0 \omega_x' + q_2 \omega_z' - q_3 \omega_y') \Delta t \\
+q_2' &= q_2 + \tfrac{1}{2}(q_0 \omega_y' - q_1 \omega_z' + q_3 \omega_x') \Delta t \\
+q_3' &= q_3 + \tfrac{1}{2}(q_0 \omega_z' + q_1 \omega_y' - q_2 \omega_x') \Delta t
+\end{aligned}
+$$
 
     对应了：
 
@@ -138,9 +138,9 @@
 
   - 四元数归一化：
 
-    $$
-    q = \frac{q'}{\|q'\|}
-    $$
+$$
+q = \frac{q'}{\|q'\|}
+$$
 
     对应了：
 
@@ -156,13 +156,13 @@
 
 - 四元数转欧拉角：
 
-  $$
-  \begin{aligned}
-  \theta _{\text{pitch}} &= \arcsin(2(q_0 q_2 - q_1 q_3)) \\
-  \phi _{\text{roll}} &= \arctan2(2(q_0 q_1 + q_2 q_3), 1 - 2(q_1^2 + q_2^2)) \\
-  \psi _{\text{yaw}} &= \arctan2(2(q_0 q_3 + q_1 q_2), 1 - 2(q_2^2 + q_3^2))
-  \end{aligned}
-  $$
+$$
+\begin{aligned}
+\theta _{\text{pitch}} &= \arcsin(2(q_0 q_2 - q_1 q_3)) \\
+\phi _{\text{roll}} &= \arctan2(2(q_0 q_1 + q_2 q_3), 1 - 2(q_1^2 + q_2^2)) \\
+\psi _{\text{yaw}} &= \arctan2(2(q_0 q_3 + q_1 q_2), 1 - 2(q_2^2 + q_3^2))
+\end{aligned}
+$$
 
 - 三环 PID 串级控制系统：
   
@@ -170,9 +170,9 @@
 
   PID 的计算公式：
 
-  $$
-  u(t) = K_p e(t) + K_i \int_0^t e(\tau) d\tau + K_d \frac{de(t)}{dt}
-  $$
+$$
+u(t) = K_p e(t) + K_i \int_0^t e(\tau) d\tau + K_d \frac{de(t)}{dt}
+$$
 
   对应代码实现中的离散化 PID 步进函数：
 

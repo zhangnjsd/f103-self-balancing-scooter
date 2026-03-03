@@ -143,11 +143,11 @@
 
 - 四元数转欧拉角：
 
-  $$\begin{aligned}
-  \theta _{\text{pitch}} &= \arcsin(2(q_0 q_2 - q_1 q_3)) \\
-  \phi _{\text{roll}} &= \arctan2(2(q_0 q_1 + q_2 q_3), 1 - 2(q_1^2 + q_2^2)) \\
-  \psi _{\text{yaw}} &= \arctan2(2(q_0 q_3 + q_1 q_2), 1 - 2(q_2^2 + q_3^2))
-  \end{aligned}$$
+$$\begin{aligned}
+\theta _{\text{pitch}} &= \arcsin(2(q_0 q_2 - q_1 q_3)) \\
+\phi _{\text{roll}} &= \arctan2(2(q_0 q_1 + q_2 q_3), 1 - 2(q_1^2 + q_2^2)) \\
+\psi _{\text{yaw}} &= \arctan2(2(q_0 q_3 + q_1 q_2), 1 - 2(q_2^2 + q_3^2))
+\end{aligned}$$
 
 - 三环 PID 串级控制系统：
   

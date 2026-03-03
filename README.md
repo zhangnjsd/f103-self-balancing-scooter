@@ -44,14 +44,14 @@ $$
 
     对应了：
 
-    ```C
-    float norm = sqrtf(ax * ax + ay * ay + az * az);
-    if (norm > 1e-6f) {
-      ax /= norm;
-      ay /= norm;
-      az /= norm;
-    }
-    ```
+```C
+float norm = sqrtf(ax * ax + ay * ay + az * az);
+if (norm > 1e-6f) {
+  ax /= norm;
+  ay /= norm;
+  az /= norm;
+}
+```
 
   - 陀螺仪角速度转换为弧度：
 
@@ -61,11 +61,11 @@ $$
 
     对应了：
 
-    ```C
-    float gx = ((float)raw_sample->gx / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
-    float gy = ((float)raw_sample->gy / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
-    float gz = ((float)raw_sample->gz / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
-    ```
+```C
+float gx = ((float)raw_sample->gx / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
+float gy = ((float)raw_sample->gy / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
+float gz = ((float)raw_sample->gz / MPU6050_GYRO_LSB_PER_DPS) * DEG2RAD;
+```
 
   - 四元数预测重力方向：
 
@@ -77,11 +77,11 @@ $$
 
     对应了：
 
-    ```C
-    float vx = 2.0f * (q1 * q3 - q0 * q2);
-    float vy = 2.0f * (q0 * q1 + q2 * q3);
-    float vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3;
-    ```
+```C
+float vx = 2.0f * (q1 * q3 - q0 * q2);
+float vy = 2.0f * (q0 * q1 + q2 * q3);
+float vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3;
+```
 
   - Error:
 
@@ -93,11 +93,11 @@ $$
 
     对应了：
 
-    ```C
-    float ex = ay * vz - az * vy;
-    float ey = az * vx - ax * vz;
-    float ez = ax * vy - ay * vx;
-    ```
+```C
+float ex = ay * vz - az * vy;
+float ey = az * vx - ax * vz;
+float ez = ax * vy - ay * vx;
+```
 
   - 陀螺仪修正：
 
@@ -109,11 +109,11 @@ $$
 
     对应了：
 
-    ```C
-    gx += QUAT_CORR_KP * ex;
-    gy += QUAT_CORR_KP * ey;
-    gz += QUAT_CORR_KP * ez;
-    ```
+```C
+gx += QUAT_CORR_KP * ex;
+gy += QUAT_CORR_KP * ey;
+gz += QUAT_CORR_KP * ez;
+```
 
   - 四元数积分：
 
@@ -128,13 +128,13 @@ $$
 
     对应了：
 
-    ```C
-    float half_dt = 0.5f * dt;
-    float nq0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * half_dt;
-    float nq1 = q1 + (q0 * gx + q2 * gz - q3 * gy) * half_dt;
-    float nq2 = q2 + (q0 * gy - q1 * gz + q3 * gx) * half_dt;
-    float nq3 = q3 + (q0 * gz + q1 * gy - q2 * gx) * half_dt;
-    ```
+```C
+float half_dt = 0.5f * dt;
+float nq0 = q0 + (-q1 * gx - q2 * gy - q3 * gz) * half_dt;
+float nq1 = q1 + (q0 * gx + q2 * gz - q3 * gy) * half_dt;
+float nq2 = q2 + (q0 * gy - q1 * gz + q3 * gx) * half_dt;
+float nq3 = q3 + (q0 * gz + q1 * gy - q2 * gx) * half_dt;
+```
 
   - 四元数归一化：
 
@@ -144,15 +144,15 @@ $$
 
     对应了：
 
-    ```C
-    float qnorm = sqrtf(nq0 * nq0 + nq1 * nq1 + nq2 * nq2 + nq3 * nq3);
-    if (qnorm > 1e-6f) {
-      q0 = nq0 / qnorm;
-      q1 = nq1 / qnorm;
-      q2 = nq2 / qnorm;
-      q3 = nq3 / qnorm;
-    }
-    ```
+```C
+float qnorm = sqrtf(nq0 * nq0 + nq1 * nq1 + nq2 * nq2 + nq3 * nq3);
+if (qnorm > 1e-6f) {
+  q0 = nq0 / qnorm;
+  q1 = nq1 / qnorm;
+  q2 = nq2 / qnorm;
+  q3 = nq3 / qnorm;
+}
+```
 
 - 四元数转欧拉角：
 
@@ -176,19 +176,17 @@ $$
 
   对应代码实现中的离散化 PID 步进函数：
 
-  ```C
-  static float pid_step(PID *pp, float measured, float dt) {
-    float err = pp->SetPoint - measured;
-    pp->SumError += err * dt;
-    pp->SumError = clampf(pp->SumError, -pp->ILimit, pp->ILimit);
-
-    float d = (err - pp->LastError) / dt;
-    pp->LastError = err;
-
-    float out = pp->Kp * err + pp->Ki * pp->SumError + pp->Kd * d;
-    return clampf(out, -pp->OutLimit, pp->OutLimit);
-  }
-  ```
+```C
+static float pid_step(PID *pp, float measured, float dt) {
+  float err = pp->SetPoint - measured;
+  pp->SumError += err * dt;
+  pp->SumError = clampf(pp->SumError, -pp->ILimit, pp->ILimit);
+  float d = (err - pp->LastError) / dt;
+  pp->LastError = err;
+  float out = pp->Kp * err + pp->Ki * pp->SumError + pp->Kd * d;
+  return clampf(out, -pp->OutLimit, pp->OutLimit);
+}
+```
 
   - **速度环（最外环）**：通过控制车身产生极小的倾角进而控制车速或保持抵御位移干扰。当受到外力推动或偏离位置时，速度环会修正平衡的目标倾角。
     - **输入**：左右电机编码器读数之和，并经过低通滤波平滑处理的值 `encoder_lpf`。

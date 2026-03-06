@@ -92,9 +92,9 @@ typedef struct {
 #define ANGLE_PERIOD_MS 5U
 #define SPEED_PERIOD_MS 10U
 
-#define CTRL_DT_S ((float)CTRL_PERIOD_MS / 1000.0f)
-#define ANGLE_DT_S ((float)ANGLE_PERIOD_MS / 1000.0f)
-#define SPEED_DT_S ((float)SPEED_PERIOD_MS / 1000.0f)
+#define CTRL_DT_S ((float)CTRL_PERIOD_MS / 1000.0f)   // Control loop period in seconds
+#define ANGLE_DT_S ((float)ANGLE_PERIOD_MS / 1000.0f) // Angle update period in seconds
+#define SPEED_DT_S ((float)SPEED_PERIOD_MS / 1000.0f) // Speed update period in seconds
 #define SAMPLE_ALPHA 0.98
 #define MPU6050_GYRO_LSB_PER_DPS                                               \
   131.0f // MPU6050 sensitivity for gyroscope in LSB per degree per second
@@ -178,7 +178,7 @@ static float clampf(float v, float lo, float hi) {
   return v;
 }
 
-// ! Initialize PID
+// ! Initialize PID (impl for PID)
 static void PIDInit(PID *pp, float kp, float ki, float kd, float setpoint,
                     float ilimit, float outlimit) {
   pp->Kp = kp;
